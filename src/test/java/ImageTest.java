@@ -1,3 +1,6 @@
+import io.restassured.builder.MultiPartSpecBuilder;
+import io.restassured.specification.MultiPartSpecification;
+import io.restassured.specification.RequestSpecification;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,14 +14,20 @@ import static io.restassured.RestAssured.get;
 import static io.restassured.RestAssured.given;
 
 public class ImageTest extends BaseTest {
+    static MultiPartSpecification postMultiPartSpecification;
     private final String PATH_TO_IMAGE = "src/test/java/killerwhale.jpeg";
     static String encodedFile;
     String uploadedImageId;
+
 
     @BeforeEach
     void beforeTest() {
         byte[] byteArray = getFileContent();
         encodedFile = Base64.getEncoder().encodeToString(byteArray);
+
+        postMultiPartSpecification = new MultiPartSpecBuilder(encodedFile)
+                .controlName("image")
+                .build();
     }
 
     private byte[] getFileContent() {
@@ -29,13 +38,14 @@ public class ImageTest extends BaseTest {
             e.printStackTrace();
         }
         return byteArray;
+
     }
 
     @Test
     void uploadFileTest() {
         uploadedImageId = given()
-                .headers("Authorization", token)
-                .multiPart("image", encodedFile)
+                .spec(authRequestSpecification)
+                .multiPart(postMultiPartSpecification)
                 .formParam("title", "ImageTitle")
                 .expect()
                 .when()
@@ -50,8 +60,8 @@ public class ImageTest extends BaseTest {
     @Test
     void upFileTest() {
         uploadedImageId = given()
-                .headers("Authorization", token)
-                .multiPart("File", encodedFile)
+                .spec(authRequestSpecification)
+                .multiPart(postMultiPartSpecification)
                 .formParam("killerwhale", "KillerWhale")
                 .expect()
                 .statusCode(200)
@@ -68,8 +78,8 @@ public class ImageTest extends BaseTest {
     @Test
     void uploadImageTest() {
         uploadedImageId = given()
-                .headers("Authorization", token)
-                .multiPart("image", encodedFile)
+                .spec(authRequestSpecification)
+                .multiPart(postMultiPartSpecification)
                 .expect()
                 .when()
                 .post("https://api.imgur.com/3/upload")
@@ -84,8 +94,8 @@ public class ImageTest extends BaseTest {
     @Test
     void upload() {
         uploadedImageId = given()
-                .headers("Authorization", token)
-                .multiPart("image", encodedFile)
+                .spec(authRequestSpecification)
+                .multiPart(postMultiPartSpecification)
                 .expect()
                 .when()
                 .post("/image")
@@ -100,7 +110,7 @@ public class ImageTest extends BaseTest {
     @Test
     void FileTestDir() {
         uploadedImageId = given()
-                .headers("Authorization", token)
+                .spec(authRequestSpecification)
                 .multiPart("File", PATH_TO_IMAGE)
                 .formParam("killerwhale", "KillerWhale")
                 .expect()
@@ -118,8 +128,8 @@ public class ImageTest extends BaseTest {
     @Test
     void UploadImageFileTest() {
         uploadedImageId = given()
-                .headers("Authorization", token)
-                .multiPart("File", encodedFile)
+                .spec(authRequestSpecification)
+                .multiPart(postMultiPartSpecification)
                 .expect()
                 .statusCode(200)
                 .when()
@@ -135,7 +145,7 @@ public class ImageTest extends BaseTest {
     @Test
     void UploadImageTest() {
         uploadedImageId = given()
-                .headers("Authorization", token)
+                .spec(authRequestSpecification)
                 .multiPart("File", encodedFile)
                 .expect()
                 .statusCode(200)
@@ -151,7 +161,7 @@ public class ImageTest extends BaseTest {
     @Test
     void putFileTest() {
         uploadedImageId = given()
-                .headers("Authorization", token)
+                .spec(authRequestSpecification)
                 .multiPart("File", encodedFile)
                 .formParam("killerwhale", "KillerWhale")
                 .expect()
@@ -168,8 +178,8 @@ public class ImageTest extends BaseTest {
     @Test
     void postFileTest() {
         uploadedImageId = given()
-                .headers("Authorization", token)
-                .multiPart("File", encodedFile)
+                .spec(authRequestSpecification)
+                .multiPart(postMultiPartSpecification)
                 .formParam("killerwhale", "KillerWhale")
                 .when()
                 .post("https://api.imgur.com/3/upload")
@@ -184,12 +194,12 @@ public class ImageTest extends BaseTest {
     @AfterEach
     void tearDown() {
         given()
-                .headers("Authorization", token)
+                .spec(authRequestSpecification)
                 .when()
                 .delete("account/{username}/image/{deleteHash}", username, uploadedImageId)
                 .prettyPeek()
                 .then()
-                .statusCode(200);
+                .spec(bodyResponseSpecification);
     }
 
 }

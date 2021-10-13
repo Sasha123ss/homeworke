@@ -1,3 +1,4 @@
+import io.restassured.http.Headers;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -11,28 +12,27 @@ public class AccountTests extends BaseTest {
     @Test
     void getAccountInfoTest() {
         given()
-                .headers("Authorization", token)
+                .spec(authRequestSpecification)
                 .when()
                 .get("https://api.imgur.com/3/account/{username}", username)
                 .then()
-                .statusCode(200);
+                .spec(bodyResponseSpecification);
     }
     @Test
     void getInfoTest () {
         given()
-                .headers("Authorization", token)
+                .spec(authRequestSpecification)
                 .when()
                 .get("https://api.imgur.com/3/account/{username}", username)
                 .prettyPeek()
                 .then()
-                .statusCode(200);
+                .spec(bodyResponseSpecification);
     }
     @Test
     void getResponseTest () {
         given()
-                .headers("Authorization", token)
+                .spec(authRequestSpecification)
                 .expect()
-                .statusCode(200)
                 .response()
                 .contentType("application/json")
                 .when()
